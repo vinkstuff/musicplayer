@@ -22,7 +22,6 @@ class SongListAdapter(val context: Context,
         return SongViewHolder(view)
     }
 
-
     override fun getItemCount(): Int = songs.size
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {

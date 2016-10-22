@@ -12,4 +12,5 @@
     <string name="playlists">Playlists</string>
     <string name="search">Search</string>
     <string name="more">More</string>
+    <string name="artist_number_of_albums_and_songs" formatted="false">%s \u2022 %s</string>
 </resources>

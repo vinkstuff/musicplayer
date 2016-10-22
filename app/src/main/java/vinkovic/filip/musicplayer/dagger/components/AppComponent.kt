@@ -4,6 +4,8 @@ import dagger.Component
 import vinkovic.filip.musicplayer.MusicPlayerApplication
 import vinkovic.filip.musicplayer.dagger.modules.AppModule
 import vinkovic.filip.musicplayer.dagger.modules.MainModule
+import vinkovic.filip.musicplayer.ui.artists.di.ArtistListComponent
+import vinkovic.filip.musicplayer.ui.artists.di.ArtistListModule
 import vinkovic.filip.musicplayer.ui.songs.di.SongListComponent
 import vinkovic.filip.musicplayer.ui.songs.di.SongListModule
 import javax.inject.Singleton
@@ -19,4 +21,6 @@ interface AppComponent {
     fun plus(module: MainModule): MainComponent
 
     fun plus(module: SongListModule): SongListComponent
+
+    fun plus(module: ArtistListModule): ArtistListComponent
 }

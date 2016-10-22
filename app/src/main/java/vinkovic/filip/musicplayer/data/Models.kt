@@ -9,4 +9,8 @@ class Song(val id: Long, val artist: String, val title: String, val album: Strin
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 }
 
-class Artist(val id: Long, val name: String)
+class Artist(val id: Long, val name: String, val artistArt: Uri, val numberOfAlbums: Int, val numberOfSongs: Int) {
+    val uri: Uri
+        get() = ContentUris.withAppendedId(
+                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+}

@@ -16,6 +16,7 @@ import timber.log.Timber
 import vinkovic.filip.musicplayer.R
 import vinkovic.filip.musicplayer.dagger.components.AppComponent
 import vinkovic.filip.musicplayer.dagger.modules.MainModule
+import vinkovic.filip.musicplayer.ui.artists.ArtistListFragment
 import vinkovic.filip.musicplayer.ui.base.BaseActivity
 import vinkovic.filip.musicplayer.ui.songs.SongListFragment
 import javax.inject.Inject
@@ -78,9 +79,9 @@ class MainActivity : BaseActivity(), MainView, EasyPermissions.PermissionCallbac
     inner class TabsAdapter(fragmentManager: FragmentManager, val tabTitles: Array<Int>) : FragmentStatePagerAdapter(fragmentManager) {
 
         override fun getItem(position: Int): Fragment {
-            when (position) {
+            when (tabTitles[position]) {
                 R.string.songs -> return SongListFragment()
-                R.string.artists -> return SongListFragment()
+                R.string.artists -> return ArtistListFragment()
                 R.string.playlists -> return SongListFragment()
                 else -> return SongListFragment()
             }
@@ -97,18 +98,8 @@ class MainActivity : BaseActivity(), MainView, EasyPermissions.PermissionCallbac
 
     private fun init() {
         if (EasyPermissions.hasPermissions(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-//            MusicProvider(contentResolver).loadMusic(object : MusicProvider.Callback {
-//                override fun onFinished(songs: List<Song>?) {
-//                    Timber.d("Finished loading songs")
-//                }
-//
-//                override fun onFailure() {
-//                    Timber.e("Failed retrieving songs")
-//                }
-//            })
             presenter.init()
         } else {
-            // Do not have permissions, request them now
             EasyPermissions.requestPermissions(this, getString(R.string.read_external_storage_rationale),
                     RC_READ_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
         }

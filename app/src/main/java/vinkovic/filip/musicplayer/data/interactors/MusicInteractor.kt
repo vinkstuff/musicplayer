@@ -9,6 +9,8 @@ interface MusicInteractor : BaseInteractor {
 
     fun getAllSongs(listener: ResponseListener<List<Song>>)
 
+    fun getSongById(songId: Long, listener: ResponseListener<List<Song>>)
+
     fun getSongsByArtist(artistId: Long, listener: ResponseListener<List<Song>>)
 
     fun getAlbum(albumId: Long, listener: ResponseListener<List<Song>>)

@@ -6,7 +6,6 @@ import android.content.ContentUris
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import timber.log.Timber
 import vinkovic.filip.musicplayer.data.Artist
 import vinkovic.filip.musicplayer.data.ResponseListener
 import vinkovic.filip.musicplayer.data.Song
@@ -22,23 +21,16 @@ class MusicInteractorImpl
             field = value
         }
 
-    inner class QueryHandler(val listener: ResponseListener<List<Song>>) : AsyncQueryHandler(contentResolver) {
+    inner class SongsQueryHandler(val listener: ResponseListener<List<Song>>) : AsyncQueryHandler(contentResolver) {
 
         override fun onQueryComplete(token: Int, cookie: Any?, cursor: Cursor?) {
-
-            Timber.d("Query finished. " + if (cursor == null) "Returned NULL." else "Returned a cursor.")
-
             if (cursor == null) {
-                Timber.e("Failed to retrieve music: cursor is null :-(")
-
                 if (!isCanceled) {
                     listener.onError("Error retrieving music")
                 }
                 return
             }
             if (!cursor.moveToFirst()) {
-                Timber.e("Failed to move cursor to first row (no query results).")
-
                 if (!isCanceled) {
                     listener.onError("No music found!")
                 }
@@ -69,18 +61,59 @@ class MusicInteractorImpl
 
             cursor.close()
 
-            Timber.d("Done querying media. Song number: " + songs.size)
-
             if (!isCanceled) {
                 listener.onSuccess(songs)
             }
         }
     }
 
-    private fun query(selection: String = "", listener: ResponseListener<List<Song>>) {
+    inner class ArtistsQueryHandler(val listener: ResponseListener<List<Artist>>) : AsyncQueryHandler(contentResolver) {
+
+        override fun onQueryComplete(token: Int, cookie: Any?, cursor: Cursor?) {
+            if (cursor == null) {
+                if (!isCanceled) {
+                    listener.onError("Error retrieving artist list")
+                }
+                return
+            }
+            if (!cursor.moveToFirst()) {
+                if (!isCanceled) {
+                    listener.onError("No artists found!")
+                }
+                return
+            }
+
+            val artistNameColumn = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)
+            val artistIdColumn = cursor.getColumnIndex(MediaStore.Audio.Artists._ID)
+            val numberOfTracksColumn = cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)
+            val numberOfAlbumsColumn = cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)
+
+            val artists: MutableList<Artist> = ArrayList()
+
+            do {
+                val artistArtUri = Uri.parse("content://media/external/audio/albumart")
+                val artistArtContentUri = ContentUris.withAppendedId(artistArtUri, cursor.getLong(artistIdColumn))
+
+                artists.add(Artist(
+                        cursor.getLong(artistIdColumn),
+                        cursor.getString(artistNameColumn),
+                        artistArtContentUri,
+                        cursor.getInt(numberOfAlbumsColumn),
+                        cursor.getInt(numberOfTracksColumn)))
+            } while (cursor.moveToNext())
+
+            cursor.close()
+
+            if (!isCanceled) {
+                listener.onSuccess(artists)
+            }
+        }
+    }
+
+    private fun querySongs(selection: String = "", listener: ResponseListener<List<Song>>) {
         isCanceled = false
         val whereClause: String = MediaStore.Audio.Media.IS_MUSIC + " = 1" + selection
-        QueryHandler(listener)
+        SongsQueryHandler(listener)
                 .startQuery(1,
                         null,
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -90,23 +123,46 @@ class MusicInteractorImpl
                         MediaStore.Audio.Media.ARTIST_KEY + "," + MediaStore.Audio.Media.ALBUM_KEY + "," + MediaStore.Audio.Media.TRACK)
     }
 
+    private fun queryArtists(selection: String = "", listener: ResponseListener<List<Artist>>) {
+        isCanceled = false
+
+        val projection = arrayOf(
+                MediaStore.Audio.Artists._ID,
+                MediaStore.Audio.Artists.ARTIST,
+                MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
+                MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)
+
+        ArtistsQueryHandler(listener)
+                .startQuery(1,
+                        null,
+                        MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+                        projection,
+                        selection,
+                        null,
+                        MediaStore.Audio.Artists.ARTIST)
+    }
+
     override fun getAllSongs(listener: ResponseListener<List<Song>>) {
-        query(listener = listener)
+        querySongs(listener = listener)
+    }
+
+    override fun getSongById(songId: Long, listener: ResponseListener<List<Song>>) {
+        querySongs(MediaStore.Audio.Media._ID, listener)
     }
 
     override fun getSongsByArtist(artistId: Long, listener: ResponseListener<List<Song>>) {
-        query(MediaStore.Audio.Media.ARTIST_ID + " = $artistId", listener)
+        querySongs(MediaStore.Audio.Media.ARTIST_ID + " = $artistId", listener)
     }
 
     override fun getAlbum(albumId: Long, listener: ResponseListener<List<Song>>) {
-        query(MediaStore.Audio.Media.ALBUM_ID + " = $albumId", listener)
+        querySongs(MediaStore.Audio.Media.ALBUM_ID + " = $albumId", listener)
     }
 
     override fun getSongsByGenre(genre: String, listener: ResponseListener<List<Song>>) {
-        query(MediaStore.Audio.Genres.NAME + " = $genre", listener)
+        querySongs(MediaStore.Audio.Genres.NAME + " = $genre", listener)
     }
 
     override fun getAllArtists(listener: ResponseListener<List<Artist>>) {
-
+        queryArtists(listener = listener)
     }
 }
