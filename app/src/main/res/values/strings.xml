@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">MusicPlayer</string>
+    <string name="app_name">Music Player</string>
+    <string name="loading">Loading</string>
+    <string name="read_external_storage_rationale">The app needs the permission to access your music.</string>
+    <string name="rationale_ask_again">The app won\'t work without storage permission.</string>
+    <string name="title_settings_dialog">Notice</string>
+    <string name="setting">Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="songs">Songs</string>
+    <string name="artists">Artists</string>
+    <string name="albums">Albums</string>
+    <string name="playlists">Playlists</string>
+    <string name="search">Search</string>
+    <string name="more">More</string>
 </resources>

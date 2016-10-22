@@ -6,6 +6,24 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="ToolbarStyle" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="background">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/tab_text_color</item>
+        <item name="android:textColorSecondary">@color/tab_text_color</item>
+    </style>
+
+
+    <style name="TabLayoutStyle" parent="Widget.Design.TabLayout">
+        <item name="tabSelectedTextColor">@color/tab_text_selected_color</item>
+        <item name="tabTextColor">@color/tab_text_color</item>
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="tabGravity">fill</item>
+        <item name="tabMode">fixed</item>
     </style>
 
 </resources>
