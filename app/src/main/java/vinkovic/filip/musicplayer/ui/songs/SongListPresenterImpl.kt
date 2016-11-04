@@ -9,6 +9,7 @@ class SongListPresenterImpl
 @Inject constructor(val view: SongListView,
                     val interactor: MusicInteractor) : SongListPresenter {
 
+    var songs: List<Song>? = null
 
     override fun init() {
         interactor.getAllSongs(songsListener)
@@ -17,6 +18,7 @@ class SongListPresenterImpl
     val songsListener: ResponseListener<List<Song>> = object : ResponseListener<List<Song>> {
 
         override fun onSuccess(response: List<Song>) {
+            songs = response
             view.showSongList(response)
         }
 
@@ -29,6 +31,9 @@ class SongListPresenterImpl
         interactor.isCanceled = true
     }
 
-    override fun onSongSelected(id: Long) {
+    override fun onSongSelected(song: Song) {
+        val playList = mutableListOf(song)
+        playList += songs?.toList()!!
+        view.playSongs(playList)
     }
 }

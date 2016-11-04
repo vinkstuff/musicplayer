@@ -2,9 +2,7 @@ package vinkovic.filip.musicplayer.data.interactors.impl
 
 import android.content.AsyncQueryHandler
 import android.content.ContentResolver
-import android.content.ContentUris
 import android.database.Cursor
-import android.net.Uri
 import android.provider.MediaStore
 import vinkovic.filip.musicplayer.data.Artist
 import vinkovic.filip.musicplayer.data.ResponseListener
@@ -47,15 +45,12 @@ class MusicInteractorImpl
             val songs: MutableList<Song> = ArrayList()
 
             do {
-                val albumArtUri = Uri.parse("content://media/external/audio/albumart")
-                val albumArtContentUri = ContentUris.withAppendedId(albumArtUri, cursor.getLong(albumIdColumn))
-
                 songs.add(Song(
                         cursor.getLong(idColumn),
                         cursor.getString(artistColumn),
                         cursor.getString(titleColumn),
                         cursor.getString(albumColumn),
-                        albumArtContentUri,
+                        cursor.getLong(albumIdColumn),
                         cursor.getLong(durationColumn)))
             } while (cursor.moveToNext())
 
@@ -91,13 +86,9 @@ class MusicInteractorImpl
             val artists: MutableList<Artist> = ArrayList()
 
             do {
-                val artistArtUri = Uri.parse("content://media/external/audio/albumart")
-                val artistArtContentUri = ContentUris.withAppendedId(artistArtUri, cursor.getLong(artistIdColumn))
-
                 artists.add(Artist(
                         cursor.getLong(artistIdColumn),
                         cursor.getString(artistNameColumn),
-                        artistArtContentUri,
                         cursor.getInt(numberOfAlbumsColumn),
                         cursor.getInt(numberOfTracksColumn)))
             } while (cursor.moveToNext())

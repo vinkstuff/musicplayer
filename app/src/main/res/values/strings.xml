@@ -13,4 +13,6 @@
     <string name="search">Search</string>
     <string name="more">More</string>
     <string name="artist_number_of_albums_and_songs" formatted="false">%s \u2022 %s</string>
+
+    <string name="transition_name_album_cover">transition_name_album_cover</string>
 </resources>
