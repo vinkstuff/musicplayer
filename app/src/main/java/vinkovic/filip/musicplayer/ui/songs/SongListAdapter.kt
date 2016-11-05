@@ -17,6 +17,8 @@ class SongListAdapter(val context: Context,
 
     val inflater: LayoutInflater = LayoutInflater.from(context)
 
+    var onItemClickListener: ((Song, View) -> Unit)? = null
+
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): SongViewHolder {
         val view = inflater.inflate(R.layout.song_list_item, parent, false)
         return SongViewHolder(view)
@@ -30,11 +32,13 @@ class SongListAdapter(val context: Context,
 
         holder.title.text = song.title
         holder.artist.text = song.artist
-        Glide.with(context).load(song.albumArt).placeholder(R.drawable.ic_music_note).into(holder.image)
+        Glide.with(context).load(song.albumArt).placeholder(R.drawable.album_art_placeholder).into(holder.image)
 
-        holder.itemView.setOnClickListener { }
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.invoke(song, holder.image)
+        }
+
     }
-
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 

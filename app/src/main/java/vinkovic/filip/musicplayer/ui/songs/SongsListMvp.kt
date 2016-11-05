@@ -7,11 +7,13 @@ import vinkovic.filip.musicplayer.ui.base.BaseView
 interface SongListView: BaseView {
 
     fun showSongList(songs: List<Song>)
+
+    fun playSongs(songs: List<Song>)
 }
 
 interface SongListPresenter: BasePresenter {
 
     fun init()
 
-    fun onSongSelected(id: Long)
+    fun onSongSelected(song: Song)
 }
