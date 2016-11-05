@@ -23,6 +23,21 @@ class Song(val id: Long, var artist: String, var title: String, val album: Strin
         }
 }
 
+class Album(val id: Long, var title: String, var artist: String, val year: Int, val numberOfSongs: Int) : Serializable {
+
+    init {
+        if (artist == "<unknown>") artist = "Unknown"
+        if (title == "<unknown>") title = "Unknown"
+    }
+
+    val albumArt: Uri
+        get() {
+            val albumArtUri = Uri.parse("content://media/external/audio/albumart")
+            val albumArtContentUri = ContentUris.withAppendedId(albumArtUri, id)
+            return albumArtContentUri
+        }
+}
+
 class Artist(val id: Long, var name: String, val numberOfAlbums: Int, val numberOfSongs: Int) : Serializable {
 
     init {

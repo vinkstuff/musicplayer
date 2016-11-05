@@ -1,4 +1,4 @@
-package vinkovic.filip.musicplayer.ui.songs
+package vinkovic.filip.musicplayer.ui.artist_details.albums
 
 import android.os.Build
 import android.os.Bundle
@@ -14,40 +14,28 @@ import vinkovic.filip.musicplayer.dagger.components.AppComponent
 import vinkovic.filip.musicplayer.dagger.modules.MusicInteractorModule
 import vinkovic.filip.musicplayer.data.Album
 import vinkovic.filip.musicplayer.data.Artist
-import vinkovic.filip.musicplayer.data.Song
+import vinkovic.filip.musicplayer.ui.artist_details.albums.di.AlbumListModule
 import vinkovic.filip.musicplayer.ui.base.BaseFragment
-import vinkovic.filip.musicplayer.ui.player.PlayerActivity
-import vinkovic.filip.musicplayer.ui.songs.di.SongListModule
 import javax.inject.Inject
 
-class SongListFragment : BaseFragment(), SongListView {
+class AlbumListFragment : BaseFragment(), AlbumListView {
 
     companion object {
-
         val EXTRA_ARTIST = "artist"
-        val EXTRA_ALBUM = "album"
 
-        fun newInstance(artist: Artist): SongListFragment {
+        fun newInstance(artist: Artist): AlbumListFragment {
             val args = Bundle()
             args.putSerializable(EXTRA_ARTIST, artist)
-            val fragment = SongListFragment()
-            fragment.arguments = args
-            return fragment
-        }
-
-        fun newInstance(album: Album): SongListFragment {
-            val args = Bundle()
-            args.putSerializable(EXTRA_ALBUM, album)
-            val fragment = SongListFragment()
+            val fragment = AlbumListFragment()
             fragment.arguments = args
             return fragment
         }
     }
 
     @Inject
-    lateinit var presenter: SongListPresenter
+    lateinit var presenter: AlbumListPresenter
 
-    var adapter: SongListAdapter? = null
+    var adapter: AlbumListAdapter? = null
 
     var transitionOptions: ActivityOptionsCompat? = null
 
@@ -59,31 +47,28 @@ class SongListFragment : BaseFragment(), SongListView {
         super.onViewCreated(view, savedInstanceState)
 
         init()
-
-        var artist: Artist? = null
-        if (arguments?.containsKey(EXTRA_ARTIST) == true) artist = arguments.getSerializable(EXTRA_ARTIST) as Artist
-        presenter.init(artist)
+        presenter.init(arguments.getSerializable(EXTRA_ARTIST) as Artist)
     }
 
     override fun injectDependencies(appComponent: AppComponent) {
-        appComponent.plus(SongListModule(this), MusicInteractorModule(getBaseActivity().contentResolver)).inject(this)
+        appComponent.plus(AlbumListModule(this), MusicInteractorModule(getBaseActivity().contentResolver)).inject(this)
     }
 
     private fun init() {
         recyclerView.layoutManager = LinearLayoutManager(context)
     }
 
-    override fun showSongList(songs: List<Song>) {
-        adapter = SongListAdapter(context, songs)
+    override fun showAlbumList(albums: List<Album>) {
+        adapter = AlbumListAdapter(context, albums)
         recyclerView.adapter = adapter
-        adapter?.onItemClickListener = { song, imageView ->
+        adapter?.onItemClickListener = { album, imageView ->
             initTransitionOptions(imageView)
-            presenter.onSongSelected(song)
+            presenter.onAlbumClicked(album)
         }
     }
 
-    override fun playSongs(songs: List<Song>) {
-        PlayerActivity.startActivity(getBaseActivity(), songs, null)
+    override fun openAlbumDetails(album: Album) {
+
     }
 
     fun initTransitionOptions(imageView: View) {

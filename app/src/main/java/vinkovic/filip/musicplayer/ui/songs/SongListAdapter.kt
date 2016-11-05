@@ -31,7 +31,7 @@ class SongListAdapter(val context: Context,
         val song = songs[position]
 
         holder.title.text = song.title
-        holder.artist.text = song.artist
+        holder.subtitle.text = song.artist
         Glide.with(context).load(song.albumArt).placeholder(R.drawable.album_art_placeholder).into(holder.image)
 
         holder.itemView.setOnClickListener {
@@ -46,12 +46,12 @@ class SongListAdapter(val context: Context,
 
         val title: TextView
 
-        val artist: TextView
+        val subtitle: TextView
 
         init {
             image = view.image
             title = view.title
-            artist = view.artist
+            subtitle = view.subtitle
         }
     }
 }

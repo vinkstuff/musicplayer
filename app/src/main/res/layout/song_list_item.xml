@@ -9,15 +9,14 @@
                 android:paddingRight="@dimen/default_padding"
                 android:paddingTop="@dimen/default_padding">
 
-    <vinkovic.filip.musicplayer.ui.shared.CircleImageView
+    <ImageView
             android:id="@+id/image"
             android:layout_width="@dimen/list_item_image_size"
             android:layout_height="@dimen/list_item_image_size"
             android:layout_marginRight="@dimen/default_padding"
             android:background="#90cccccc"
             android:scaleType="centerCrop"
-            android:src="@drawable/album_art_placeholder"
-            />
+            tools:src="@drawable/album_art_placeholder"/>
 
     <TextView
             android:id="@+id/title"
@@ -30,7 +29,7 @@
             tools:text="Battleship Chains"/>
 
     <TextView
-            android:id="@+id/artist"
+            android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/image"

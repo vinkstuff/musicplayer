@@ -1,7 +1,7 @@
-package vinkovic.filip.musicplayer.dagger.components
+package vinkovic.filip.musicplayer.ui.main.di
 
 import dagger.Subcomponent
-import vinkovic.filip.musicplayer.dagger.modules.MainModule
+import vinkovic.filip.musicplayer.ui.main.di.MainModule
 import vinkovic.filip.musicplayer.ui.main.MainActivity
 
 @Subcomponent(modules = arrayOf(MainModule::class))
