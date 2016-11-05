@@ -60,9 +60,15 @@ class SongListFragment : BaseFragment(), SongListView {
 
         init()
 
-        var artist: Artist? = null
-        if (arguments?.containsKey(EXTRA_ARTIST) == true) artist = arguments.getSerializable(EXTRA_ARTIST) as Artist
-        presenter.init(artist)
+        if (arguments != null) {
+            if (arguments.containsKey(EXTRA_ARTIST)) {
+                presenter.init(arguments.getSerializable(EXTRA_ARTIST) as Artist)
+            } else if (arguments.containsKey(EXTRA_ALBUM)) {
+                presenter.init(arguments.getSerializable(EXTRA_ALBUM) as Album)
+            }
+        } else {
+            presenter.init()
+        }
     }
 
     override fun injectDependencies(appComponent: AppComponent) {

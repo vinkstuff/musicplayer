@@ -60,6 +60,7 @@ abstract class BaseActivity : AppCompatActivity(), BaseView {
             }
         }
     }
+
     override fun showProgress() {
         val dialogShowing = progressDialog?.isShowing ?: false
 

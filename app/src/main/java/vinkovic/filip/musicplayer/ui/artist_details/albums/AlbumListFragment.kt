@@ -14,6 +14,7 @@ import vinkovic.filip.musicplayer.dagger.components.AppComponent
 import vinkovic.filip.musicplayer.dagger.modules.MusicInteractorModule
 import vinkovic.filip.musicplayer.data.Album
 import vinkovic.filip.musicplayer.data.Artist
+import vinkovic.filip.musicplayer.ui.album_details.AlbumDetailsActivity
 import vinkovic.filip.musicplayer.ui.artist_details.albums.di.AlbumListModule
 import vinkovic.filip.musicplayer.ui.base.BaseFragment
 import javax.inject.Inject
@@ -68,7 +69,7 @@ class AlbumListFragment : BaseFragment(), AlbumListView {
     }
 
     override fun openAlbumDetails(album: Album) {
-
+        AlbumDetailsActivity.startActivity(getBaseActivity(), album, null)
     }
 
     fun initTransitionOptions(imageView: View) {
