@@ -24,7 +24,8 @@ class ArtistListPresenterImpl
         }
     }
 
-    override fun onArtistSelected(id: Long) {
+    override fun onArtistSelected(artist: Artist) {
+        view.openArtistDetails(artist)
     }
 
     override fun cancel() {

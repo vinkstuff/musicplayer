@@ -3,6 +3,10 @@
     <color name="colorPrimary">#262F39</color>
     <color name="colorPrimaryDark">#18212D</color>
     <color name="colorAccent">#F33E48</color>
+    <color name="colorPrimaryTransparent">#d6262f39</color>
     <color name="tab_text_color">#4E5760</color>
     <color name="tab_text_selected_color">#D1D7DC</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
 </resources>

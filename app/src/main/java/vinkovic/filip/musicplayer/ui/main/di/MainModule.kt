@@ -1,4 +1,4 @@
-package vinkovic.filip.musicplayer.dagger.modules
+package vinkovic.filip.musicplayer.ui.main.di
 
 import dagger.Module
 import dagger.Provides

@@ -7,11 +7,13 @@ import vinkovic.filip.musicplayer.ui.base.BaseView
 interface ArtistListView : BaseView {
 
     fun showArtistList(artists: List<Artist>)
+
+    fun openArtistDetails(artist: Artist)
 }
 
 interface ArtistListPresenter : BasePresenter {
 
     fun init()
 
-    fun onArtistSelected(id: Long)
+    fun onArtistSelected(artist: Artist)
 }

@@ -4,6 +4,7 @@ import android.content.AsyncQueryHandler
 import android.content.ContentResolver
 import android.database.Cursor
 import android.provider.MediaStore
+import vinkovic.filip.musicplayer.data.Album
 import vinkovic.filip.musicplayer.data.Artist
 import vinkovic.filip.musicplayer.data.ResponseListener
 import vinkovic.filip.musicplayer.data.Song
@@ -101,9 +102,53 @@ class MusicInteractorImpl
         }
     }
 
+    inner class AlbumsQueryHandler(val listener: ResponseListener<List<Album>>) : AsyncQueryHandler(contentResolver) {
+
+        override fun onQueryComplete(token: Int, cookie: Any?, cursor: Cursor?) {
+            if (cursor == null) {
+                if (!isCanceled) {
+                    listener.onError("Error retrieving albums list")
+                }
+                return
+            }
+            if (!cursor.moveToFirst()) {
+                if (!isCanceled) {
+                    listener.onError("No albums found!")
+                }
+                return
+            }
+
+            val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Albums._ID)
+            val albumNameColumn = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)
+            val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)
+            val numberOfSongsColumn = cursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS)
+            val yearColumn = cursor.getColumnIndex(MediaStore.Audio.Albums.FIRST_YEAR)
+
+            val albums: MutableList<Album> = ArrayList()
+
+            do {
+                albums.add(Album(
+                        cursor.getLong(albumIdColumn),
+                        cursor.getString(albumNameColumn),
+                        cursor.getString(artistColumn),
+                        cursor.getInt(yearColumn),
+                        cursor.getInt(numberOfSongsColumn)))
+            } while (cursor.moveToNext())
+
+            cursor.close()
+
+            if (!isCanceled) {
+                listener.onSuccess(albums)
+            }
+        }
+    }
+
     private fun querySongs(selection: String = "", listener: ResponseListener<List<Song>>) {
         isCanceled = false
-        val whereClause: String = MediaStore.Audio.Media.IS_MUSIC + " = 1" + selection
+        var whereClause: String = MediaStore.Audio.Media.IS_MUSIC + " = 1"
+
+        if (selection.isNotEmpty()) whereClause += " AND " + selection
+
         SongsQueryHandler(listener)
                 .startQuery(1,
                         null,
@@ -145,7 +190,7 @@ class MusicInteractorImpl
         querySongs(MediaStore.Audio.Media.ARTIST_ID + " = $artistId", listener)
     }
 
-    override fun getAlbum(albumId: Long, listener: ResponseListener<List<Song>>) {
+    override fun getSongsByAlbum(albumId: Long, listener: ResponseListener<List<Song>>) {
         querySongs(MediaStore.Audio.Media.ALBUM_ID + " = $albumId", listener)
     }
 
@@ -155,5 +200,27 @@ class MusicInteractorImpl
 
     override fun getAllArtists(listener: ResponseListener<List<Artist>>) {
         queryArtists(listener = listener)
+    }
+
+    override fun getAlbumsByArtist(artistId: Long, listener: ResponseListener<List<Album>>) {
+        isCanceled = false
+
+        val whereClause: String = MediaStore.Audio.Media.ARTIST_ID + " = $artistId"
+
+        val projection = arrayOf(
+                MediaStore.Audio.Albums._ID,
+                MediaStore.Audio.Albums.ALBUM,
+                MediaStore.Audio.Albums.ARTIST,
+                MediaStore.Audio.Albums.NUMBER_OF_SONGS,
+                MediaStore.Audio.Albums.FIRST_YEAR)
+
+        AlbumsQueryHandler(listener)
+                .startQuery(1,
+                        null,
+                        MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                        projection,
+                        whereClause,
+                        null,
+                        MediaStore.Audio.Albums.ALBUM)
     }
 }

@@ -15,9 +15,9 @@ import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 import vinkovic.filip.musicplayer.R
 import vinkovic.filip.musicplayer.dagger.components.AppComponent
-import vinkovic.filip.musicplayer.dagger.modules.MainModule
 import vinkovic.filip.musicplayer.ui.artists.ArtistListFragment
 import vinkovic.filip.musicplayer.ui.base.BaseActivity
+import vinkovic.filip.musicplayer.ui.main.di.MainModule
 import vinkovic.filip.musicplayer.ui.songs.SongListFragment
 import javax.inject.Inject
 

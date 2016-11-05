@@ -1,4 +1,4 @@
-package vinkovic.filip.musicplayer.ui.artists
+package vinkovic.filip.musicplayer.ui.artist_details.albums
 
 import android.os.Build
 import android.os.Bundle
@@ -12,18 +12,31 @@ import kotlinx.android.synthetic.main.fragment_song_list.*
 import vinkovic.filip.musicplayer.R
 import vinkovic.filip.musicplayer.dagger.components.AppComponent
 import vinkovic.filip.musicplayer.dagger.modules.MusicInteractorModule
+import vinkovic.filip.musicplayer.data.Album
 import vinkovic.filip.musicplayer.data.Artist
-import vinkovic.filip.musicplayer.ui.artist_details.ArtistDetailsActivity
-import vinkovic.filip.musicplayer.ui.artists.di.ArtistListModule
+import vinkovic.filip.musicplayer.ui.album_details.AlbumDetailsActivity
+import vinkovic.filip.musicplayer.ui.artist_details.albums.di.AlbumListModule
 import vinkovic.filip.musicplayer.ui.base.BaseFragment
 import javax.inject.Inject
 
-class ArtistListFragment : BaseFragment(), ArtistListView {
+class AlbumListFragment : BaseFragment(), AlbumListView {
+
+    companion object {
+        val EXTRA_ARTIST = "artist"
+
+        fun newInstance(artist: Artist): AlbumListFragment {
+            val args = Bundle()
+            args.putSerializable(EXTRA_ARTIST, artist)
+            val fragment = AlbumListFragment()
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     @Inject
-    lateinit var presenter: ArtistListPresenter
+    lateinit var presenter: AlbumListPresenter
 
-    var adapter: ArtistListAdapter? = null
+    var adapter: AlbumListAdapter? = null
 
     var transitionOptions: ActivityOptionsCompat? = null
 
@@ -35,28 +48,28 @@ class ArtistListFragment : BaseFragment(), ArtistListView {
         super.onViewCreated(view, savedInstanceState)
 
         init()
-        presenter.init()
+        presenter.init(arguments.getSerializable(EXTRA_ARTIST) as Artist)
     }
 
     override fun injectDependencies(appComponent: AppComponent) {
-        appComponent.plus(ArtistListModule(this), MusicInteractorModule(getBaseActivity().contentResolver)).inject(this)
+        appComponent.plus(AlbumListModule(this), MusicInteractorModule(getBaseActivity().contentResolver)).inject(this)
     }
 
     private fun init() {
         recyclerView.layoutManager = LinearLayoutManager(context)
     }
 
-    override fun openArtistDetails(artist: Artist) {
-        ArtistDetailsActivity.startActivity(getBaseActivity(), artist, null)
+    override fun showAlbumList(albums: List<Album>) {
+        adapter = AlbumListAdapter(context, albums)
+        recyclerView.adapter = adapter
+        adapter?.onItemClickListener = { album, imageView ->
+            initTransitionOptions(imageView)
+            presenter.onAlbumClicked(album)
+        }
     }
 
-    override fun showArtistList(artists: List<Artist>) {
-        adapter = ArtistListAdapter(context, artists)
-        recyclerView.adapter = adapter
-        adapter?.onItemClickListener = { artist, imageView ->
-            initTransitionOptions(imageView)
-            presenter.onArtistSelected(artist)
-        }
+    override fun openAlbumDetails(album: Album) {
+        AlbumDetailsActivity.startActivity(getBaseActivity(), album, null)
     }
 
     fun initTransitionOptions(imageView: View) {
@@ -65,5 +78,4 @@ class ArtistListFragment : BaseFragment(), ArtistListView {
                     Pair.create(imageView, getString(R.string.transition_name_album_cover)))
         }
     }
-
 }

@@ -11,6 +11,9 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_song_list.*
 import vinkovic.filip.musicplayer.R
 import vinkovic.filip.musicplayer.dagger.components.AppComponent
+import vinkovic.filip.musicplayer.dagger.modules.MusicInteractorModule
+import vinkovic.filip.musicplayer.data.Album
+import vinkovic.filip.musicplayer.data.Artist
 import vinkovic.filip.musicplayer.data.Song
 import vinkovic.filip.musicplayer.ui.base.BaseFragment
 import vinkovic.filip.musicplayer.ui.player.PlayerActivity
@@ -18,6 +21,28 @@ import vinkovic.filip.musicplayer.ui.songs.di.SongListModule
 import javax.inject.Inject
 
 class SongListFragment : BaseFragment(), SongListView {
+
+    companion object {
+
+        val EXTRA_ARTIST = "artist"
+        val EXTRA_ALBUM = "album"
+
+        fun newInstance(artist: Artist): SongListFragment {
+            val args = Bundle()
+            args.putSerializable(EXTRA_ARTIST, artist)
+            val fragment = SongListFragment()
+            fragment.arguments = args
+            return fragment
+        }
+
+        fun newInstance(album: Album): SongListFragment {
+            val args = Bundle()
+            args.putSerializable(EXTRA_ALBUM, album)
+            val fragment = SongListFragment()
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     @Inject
     lateinit var presenter: SongListPresenter
@@ -34,11 +59,20 @@ class SongListFragment : BaseFragment(), SongListView {
         super.onViewCreated(view, savedInstanceState)
 
         init()
-        presenter.init()
+
+        if (arguments != null) {
+            if (arguments.containsKey(EXTRA_ARTIST)) {
+                presenter.init(arguments.getSerializable(EXTRA_ARTIST) as Artist)
+            } else if (arguments.containsKey(EXTRA_ALBUM)) {
+                presenter.init(arguments.getSerializable(EXTRA_ALBUM) as Album)
+            }
+        } else {
+            presenter.init()
+        }
     }
 
     override fun injectDependencies(appComponent: AppComponent) {
-        appComponent.plus(SongListModule(this, getBaseActivity().contentResolver)).inject(this)
+        appComponent.plus(SongListModule(this), MusicInteractorModule(getBaseActivity().contentResolver)).inject(this)
     }
 
     private fun init() {

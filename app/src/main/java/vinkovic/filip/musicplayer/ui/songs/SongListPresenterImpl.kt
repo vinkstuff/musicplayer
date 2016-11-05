@@ -1,5 +1,7 @@
 package vinkovic.filip.musicplayer.ui.songs
 
+import vinkovic.filip.musicplayer.data.Album
+import vinkovic.filip.musicplayer.data.Artist
 import vinkovic.filip.musicplayer.data.ResponseListener
 import vinkovic.filip.musicplayer.data.Song
 import vinkovic.filip.musicplayer.data.interactors.MusicInteractor
@@ -13,6 +15,14 @@ class SongListPresenterImpl
 
     override fun init() {
         interactor.getAllSongs(songsListener)
+    }
+
+    override fun init(artist: Artist) {
+        interactor.getSongsByArtist(artist.id, songsListener)
+    }
+
+    override fun init(album: Album) {
+        interactor.getSongsByAlbum(album.id, songsListener)
     }
 
     val songsListener: ResponseListener<List<Song>> = object : ResponseListener<List<Song>> {
