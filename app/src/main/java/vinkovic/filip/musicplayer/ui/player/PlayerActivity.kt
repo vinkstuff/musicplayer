@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.support.v4.app.ActivityOptionsCompat
+import android.view.MenuItem
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_player.*
 import vinkovic.filip.musicplayer.R
@@ -91,6 +92,7 @@ class PlayerActivity : BaseActivity(), PlayerView, Runnable, MusicService.MusicS
 
     override fun onPause() {
         super.onPause()
+        musicService.serviceListener = null
         unbindService(serviceConnection)
     }
 
@@ -115,7 +117,7 @@ class PlayerActivity : BaseActivity(), PlayerView, Runnable, MusicService.MusicS
 
     override fun onPlayerStarted() {
         btnPlay.setState(PlayPauseButton.State.PAUSE)
-        progressHandler.postDelayed(this, 10)
+        progressHandler.postDelayed(this, 1000)
     }
 
     override fun onPlayerPaused() {
@@ -144,7 +146,7 @@ class PlayerActivity : BaseActivity(), PlayerView, Runnable, MusicService.MusicS
     }
 
     override fun updateUI() {
-        progressHandler.postDelayed(this, 10)
+        progressHandler.postDelayed(this, 1000)
         albumCover.setValue(musicService.getSongProgress())
     }
 
@@ -175,4 +177,15 @@ class PlayerActivity : BaseActivity(), PlayerView, Runnable, MusicService.MusicS
 
     override fun setProgress(progress: Float) {
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
 }

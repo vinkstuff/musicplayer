@@ -13,7 +13,7 @@ import vinkovic.filip.musicplayer.dagger.components.AppComponent
 abstract class BaseActivity : AppCompatActivity(), BaseView {
 
     enum class MenuIcon {
-        HAMBURGER, BACK, CLOSE, NONE
+        HAMBURGER, BACK, CLOSE, MINIMIZE, NONE
     }
 
     private var progressDialog: ProgressDialog? = null
@@ -52,6 +52,12 @@ abstract class BaseActivity : AppCompatActivity(), BaseView {
                 actionBar.setDisplayHomeAsUpEnabled(true)
                 actionBar.setDisplayUseLogoEnabled(false)
                 actionBar.setHomeAsUpIndicator(ContextCompat.getDrawable(this, R.drawable.ic_close))
+            }
+            MenuIcon.MINIMIZE -> {
+                actionBar.setHomeButtonEnabled(true)
+                actionBar.setDisplayHomeAsUpEnabled(true)
+                actionBar.setDisplayUseLogoEnabled(false)
+                actionBar.setHomeAsUpIndicator(ContextCompat.getDrawable(this, R.drawable.ic_minimize))
             }
             else -> {
                 actionBar.setDisplayHomeAsUpEnabled(false)

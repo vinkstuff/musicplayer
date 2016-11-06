@@ -1,15 +1,23 @@
 package vinkovic.filip.musicplayer.data
 
-import android.app.Notification
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
 import android.os.PowerManager
+import android.support.v7.app.NotificationCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.animation.GlideAnimation
+import com.bumptech.glide.request.target.SimpleTarget
 import timber.log.Timber
 import vinkovic.filip.musicplayer.R
 import vinkovic.filip.musicplayer.ui.player.PlayerActivity
@@ -23,6 +31,10 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         fun onPlayerPaused()
         fun onSongChanged(song: Song)
     }
+
+    val ACTION_PREV_SONG = "previous"
+    val ACTION_NEXT_SONG = "next"
+    val ACTION_PAUSE = "pause"
 
     var player = MediaPlayer()
 
@@ -38,8 +50,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     val musicBind = MusicBinder()
 
-    var songTitle: String? = ""
-
     val NOTIFY_ID = 1
 
     var shuffle = true
@@ -48,8 +58,29 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     var serviceListener: MusicServiceListener? = null
 
+    var largeIconHeight: Int? = 0
+
+    var largeIconWidth: Int? = 0
+
+    lateinit var notificationManager: NotificationManager
+
+    lateinit var notificationBuilder: NotificationCompat.Builder
+
+    var progressHandler = Handler()
+
+    var progressRunnable = object : Runnable {
+        override fun run() {
+            notificationBuilder.setProgress(100, getSongProgress().toInt(), false)
+            notificationManager.notify(NOTIFY_ID, notificationBuilder.build())
+            progressHandler.postDelayed(this, 1000)
+        }
+    }
+    
     override fun onCreate() {
         super.onCreate()
+
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationBuilder = NotificationCompat.Builder(applicationContext)
 
         initMusicPlayer()
     }
@@ -61,10 +92,9 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         player.setOnPreparedListener(this)
         player.setOnCompletionListener(this)
         player.setOnErrorListener(this)
-    }
 
-    fun setList(theSongs: ArrayList<Song>) {
-        songs = theSongs
+        largeIconHeight = resources.getDimension(android.R.dimen.notification_large_icon_height).toInt()
+        largeIconWidth = resources.getDimension(android.R.dimen.notification_large_icon_width).toInt()
     }
 
     inner class MusicBinder : Binder() {
@@ -81,8 +111,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
         val song = songs?.get(currentSongPosition) ?: return
         currentSong = song
-
-        songTitle = song.title
 
         val trackUri = ContentUris.withAppendedId(
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -112,7 +140,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
             mp.reset()
             playNext()
         } else {
-            serviceListener?.onPlayerPaused()
+            onPlayerPaused()
         }
     }
 
@@ -120,6 +148,16 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         Timber.v("Playback Error")
         mp.reset()
         return false
+    }
+
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        when (intent.action) {
+            ACTION_NEXT_SONG -> playNext()
+            ACTION_PREV_SONG -> playPrevious()
+            ACTION_PAUSE -> if (isPlaying()) pausePlayer() else resume()
+        }
+
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onPrepared(mp: MediaPlayer) {
@@ -131,20 +169,70 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendInt = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val builder = Notification.Builder(this)
-
-        builder.setContentIntent(pendInt)
+        val notification = notificationBuilder
                 .setSmallIcon(R.drawable.ic_play)
-                .setTicker(songTitle)
-                .setOngoing(true)
-                .setContentTitle("Playing")
-                .setContentText(songTitle)
-
-        val notification = builder.build()
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .addAction(R.drawable.ic_skip_previous, "", createActionIntent(ACTION_PREV_SONG))
+                .addAction(R.drawable.ic_pause, "", createActionIntent(ACTION_PAUSE))
+                .addAction(R.drawable.ic_skip_next, "", createActionIntent(ACTION_NEXT_SONG))
+                .setContentTitle(currentSong!!.title)
+                .setContentText(currentSong!!.artist)
+                .setContentIntent(pendInt)
+                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.album_art_placeholder)).build()
 
         startForeground(NOTIFY_ID, notification)
+
+        startNotificationProgressUpdate()
+
+        Glide.with(this).load(currentSong?.albumArt).asBitmap().placeholder(R.drawable.album_art_placeholder).dontAnimate()
+                .into(object : SimpleTarget<Bitmap>(largeIconWidth!!, largeIconHeight!!) {
+                    override fun onResourceReady(resource: Bitmap?, glideAnimation: GlideAnimation<in Bitmap>?) {
+                        notificationBuilder.setLargeIcon(resource)
+                        notificationManager.notify(NOTIFY_ID, notificationBuilder.build())
+                        Glide.clear(this)
+                    }
+                })
     }
 
+    fun createActionIntent(action: String): PendingIntent {
+        val serviceIntent = Intent(this, MusicService::class.java)
+        serviceIntent.action = action
+        return PendingIntent.getService(this, 0, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    fun startNotificationProgressUpdate() {
+        progressHandler.postDelayed(progressRunnable, 1000)
+    }
+
+    fun stopNotificationProgressUpdate() {
+        progressHandler.removeCallbacksAndMessages(null)
+    }
+
+    fun onPlayerResumed() {
+        serviceListener?.onPlayerStarted()
+
+        val pauseAction = notificationBuilder.mActions.elementAt(1)
+        pauseAction.icon = R.drawable.ic_pause
+        notificationBuilder.mActions[1] = pauseAction
+        notificationManager.notify(NOTIFY_ID, notificationBuilder.build())
+
+        startNotificationProgressUpdate()
+    }
+
+    fun onPlayerPaused() {
+        serviceListener?.onPlayerPaused()
+
+        val playAction = notificationBuilder.mActions.elementAt(1)
+        playAction.icon = R.drawable.ic_play
+        notificationBuilder.mActions[1] = playAction
+        notificationManager.notify(NOTIFY_ID, notificationBuilder.build())
+
+        stopNotificationProgressUpdate()
+    }
+
+    /**
+     * Returns the time progress of the currently playing song in percentage 0 - 100.
+     */
     fun getSongProgress(): Float {
         if (currentSong == null) return 0f else return player.currentPosition.toFloat() / currentSong!!.duration.toFloat() * 100f
     }
@@ -159,7 +247,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     fun pausePlayer() {
         player.pause()
-        serviceListener?.onPlayerPaused()
+        onPlayerPaused()
     }
 
     fun seek(position: Int) {
@@ -168,7 +256,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     fun resume() {
         player.start()
-        serviceListener?.onPlayerStarted()
+        onPlayerResumed()
     }
 
     fun playPrevious() {
